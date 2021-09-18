@@ -45,7 +45,7 @@ const Start = () => {
 
   return (
     <div>
-      Game will start soon
+      Welcome to the game, you will get a hint then draw it on the whiteboard. Our server will be the judge. Try to beat your component.
 
       {
         loggedIn ? 
