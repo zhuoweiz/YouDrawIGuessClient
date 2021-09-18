@@ -5,6 +5,8 @@ import { Button, Typography, Grid, Paper } from '@mui/material';
 import { getAuth, signOut, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "firebase/auth";
 import DrawingBoard from 'react-drawing-board';
 
+import make_prediction from './vision/labelImage';
+
 
 // import {
 //   useQuery,
@@ -39,6 +41,12 @@ const GameModule = () => {
           onChange={(newOperation, afterOperation) => {
             console.log(`TODO: send ${newOperation}`);
             setOperations(afterOperation);
+          }}
+          onSave={(image) => {
+            // console.log("IMAGE DATA: ",  );
+            let imageData = image.dataUrl.split(',')[1];
+
+            make_prediction(imageData);
           }}
         />
       </Grid>
