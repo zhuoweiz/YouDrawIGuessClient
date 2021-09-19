@@ -1,6 +1,6 @@
 // Imports the Google Cloud client library
 
-export default async function make_prediction(imageData) {    
+export default async function make_prediction(imageData,handleSubmission) {    
   // const vision = require('@google-cloud/vision');
   const axios = require('axios')
   // Creates a client
@@ -31,7 +31,7 @@ export default async function make_prediction(imageData) {
           "key":"AIzaSyDLhAxwplxKwoyfYTVzLMt-NruD5FifIVI"
       }
   }).then((response) => {
-      console.log("response",response.data.responses[0].labelAnnotations);
+      handleSubmission(response.data.responses[0].labelAnnotations);
   }).catch((error) => {
       console.log("error..",error);
   })

@@ -24,9 +24,28 @@ import {
 //   Link
 // } from "react-router-dom";
 
-const GameModule = () => {
+const GameModule = (props) => {
   const [operations, setOperations] = React.useState();
+  const question = props.question
 
+  const handleSubmission = (data) => {
+    console.log("response", data );
+    var result = false;
+    data.forEach((Element) => {
+      console.log(Element)
+      if (Element.description.toLowerCase() == question.toLowerCase()){
+        result = true; 
+      }
+    })
+    console.log(result)
+    //console.log(data[0])
+    if (result == true){
+      alert("Congratulations!")
+    } else {
+      alert("Sorry, try again!")
+    }
+    
+  };
 
   return(
     <Grid container justifyContent={'center'} alignItems={'center'}>
@@ -53,7 +72,7 @@ const GameModule = () => {
             // console.log("IMAGE DATA: ",  );
             let imageData = image.dataUrl.split(',')[1];
 
-            make_prediction(imageData);
+            make_prediction(imageData, handleSubmission);
           }}
         />
       </Grid>
@@ -88,7 +107,13 @@ const Start = () => {
   const [username, setUsername] = React.useState("");
   const [ready, setReady] = React.useState(false);
 
+  const [question, setQuestion] = React.useState("");
+
   const [getQuestionMutation, {data}] = useMutation(gql`mutation GetQuestion{getQuestion}`)
+
+  if (data) {
+    
+  }
 
   return (
     <div style={{
@@ -150,7 +175,7 @@ const Start = () => {
             {data && data.getQuestion && ready ? "your question is:" + data.getQuestion : ""}
           </Typography>
           {
-            ready ? <GameModule></GameModule> : null
+            ready ? <GameModule question = {data ? data.getQuestion : ""}></GameModule> : null
           }
           
         </>
