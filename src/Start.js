@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 
 import { Button, Typography, Grid, Paper } from '@mui/material';
 
@@ -6,12 +6,16 @@ import { getAuth, signOut, signInWithPopup, GoogleAuthProvider, onAuthStateChang
 import DrawingBoard from 'react-drawing-board';
 
 import make_prediction from './vision/labelImage';
+import { collection, addDoc, query, where , getDocs } from "firebase/firestore"; 
+import { getFirestore } from "firebase/firestore"
 
 import {
   gql, useMutation
 } from "@apollo/client";
 
-
+// import firebase from "firebase";
+// // Required for side-effects
+// require("firebase/firestore");
 // import {
 //   useQuery,
 //   gql
@@ -24,11 +28,17 @@ import {
 //   Link
 // } from "react-router-dom";
 
+
 const GameModule = (props) => {
   const [operations, setOperations] = React.useState();
-  const question = props.question
+  const question = props.question;
 
-  const handleSubmission = (data) => {
+  const db = getFirestore();
+  const auth = getAuth();
+  const user = auth.currentUser;
+
+
+  async function handleSubmission(data) {
     console.log("response", data );
     var result = false;
     data.forEach((Element) => {
@@ -41,6 +51,14 @@ const GameModule = (props) => {
     //console.log(data[0])
     if (result == true){
       alert("Congratulations!")
+      const docRef = await addDoc(collection(db, "record"), {
+        user_ID: user.uid,
+        result: result,
+        question: question,
+        time: Date.now(),
+      });
+      console.log("Document written with ID: ", docRef.id);
+      
     } else {
       alert("Sorry, try again!")
     }
@@ -88,6 +106,32 @@ const Start = () => {
   const auth = getAuth();
   const user = auth.currentUser;
 
+  const [loggedIn, setLoggedIn] = React.useState(false);
+  const [username, setUsername] = React.useState("");
+  const [ready, setReady] = React.useState(false);
+  const [recordsData, setRecords] = React.useState([]);
+
+  const [question, setQuestion] = React.useState("");
+
+  const [getQuestionMutation, {data}] = useMutation(gql`mutation GetQuestion{getQuestion}`)
+
+  async function getRecords(uid) {
+    const db = getFirestore();
+    const citiesRef = collection(db, "record");
+    const q = query(citiesRef, where("user_ID", "==", uid));
+    var data = [];
+    const querySnapshot = await getDocs(q);
+    querySnapshot.forEach((doc) => {
+      // doc.data() is never undefined for query doc snapshots
+      console.log(doc.id, " => ", doc.data());
+
+      data.push(doc.data());
+    });
+
+    console.log("data: ", data);
+    setRecords(data);
+  }
+
   onAuthStateChanged(auth, (user) => {
     if (user) {
       // User is signed in, see docs for a list of available properties
@@ -103,17 +147,7 @@ const Start = () => {
   });
 
   
-  const [loggedIn, setLoggedIn] = React.useState(false);
-  const [username, setUsername] = React.useState("");
-  const [ready, setReady] = React.useState(false);
-
-  const [question, setQuestion] = React.useState("");
-
-  const [getQuestionMutation, {data}] = useMutation(gql`mutation GetQuestion{getQuestion}`)
-
-  if (data) {
-    
-  }
+  
 
   return (
     <div style={{
@@ -169,7 +203,30 @@ const Start = () => {
                 // An error happened.
               });
             }}
+
           >Sign Out</Button>
+
+      <Grid container justifyContent={'center'} alignItems={'center'} >
+        <Grid item>
+          <Paper variant="outlined" style={{
+            width: 300,
+            padding: 16,
+          }}>
+            {
+              recordsData.map((Element, index) => {
+                // doc.data() is never undefined for query doc snapshots
+                const newDate = new Date(Element.time);
+                    return (
+                      <Typography key={index}>time: {newDate.getMonth()+1}-{newDate.getDate()} Time:{newDate.getHours()} question: {Element.question} result: {Element.result} </Typography>
+                    )
+                  })
+            }
+            <Typography>
+              user_ID: {user.email}
+            </Typography>
+          </Paper>
+        </Grid>
+      </Grid>
 
           <Typography>
             {data && data.getQuestion && ready ? "your question is:" + data.getQuestion : ""}
@@ -191,6 +248,8 @@ const Start = () => {
                   // The signed-in user info.
                   const user = result.user;
                   console.log("user: ", user);
+
+                  getRecords(user.uid)
 
                   setLoggedIn(true);
                   setUsername(user.email);
