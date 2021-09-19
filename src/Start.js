@@ -7,6 +7,10 @@ import DrawingBoard from 'react-drawing-board';
 
 import make_prediction from './vision/labelImage';
 
+import {
+  gql, useMutation
+} from "@apollo/client";
+
 
 // import {
 //   useQuery,
@@ -23,6 +27,7 @@ import make_prediction from './vision/labelImage';
 const GameModule = () => {
   const [operations, setOperations] = React.useState();
 
+
   return(
     <Grid container justifyContent={'center'} alignItems={'center'}>
       <Grid item style={{
@@ -30,6 +35,8 @@ const GameModule = () => {
         backgroundColor: 'black',
         padding:20,
       }}>
+
+        <Typography> </Typography>
         <DrawingBoard
           style={{
             width: 800,
@@ -81,6 +88,8 @@ const Start = () => {
   const [username, setUsername] = React.useState("");
   const [ready, setReady] = React.useState(false);
 
+  const [getQuestionMutation, {data}] = useMutation(gql`mutation GetQuestion{getQuestion}`)
+
   return (
     <div style={{
       paddingTop: 40
@@ -110,8 +119,19 @@ const Start = () => {
           <Button
             // disabled={ready}
             onClick={()=>{
-              setReady(!ready);
+              
+
               // TODO send ready signal to server
+              
+              if (!ready) {
+                getQuestionMutation({
+                  variables: {}
+                })
+                .then(Response => {
+                  console.log("get question: ", Response);
+                });
+              }
+              setReady(!ready);
             }}
           >{ready ? "Leave" : "Ready"}</Button>
           <Button
@@ -126,6 +146,9 @@ const Start = () => {
             }}
           >Sign Out</Button>
 
+          <Typography>
+            {data && data.getQuestion && ready ? "your question is:" + data.getQuestion : ""}
+          </Typography>
           {
             ready ? <GameModule></GameModule> : null
           }

@@ -35,9 +35,9 @@ const analytics = getAnalytics(app);
 const client = new ApolloClient({
   uri: 
   
-  'https://hackrice11-326402.ue.r.appspot.com/graphql',
+  // 'https://hackrice11-326402.ue.r.appspot.com/graphql',
 
-  // 'http://localhost:4000/graphql',
+  'http://localhost:4000/graphql',
   cache: new InMemoryCache()
 });
 
